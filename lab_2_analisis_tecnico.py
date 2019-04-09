@@ -105,3 +105,4 @@ df3_cuenta=pd.DataFrame(data,columns=['Fecha','Capital','Flotante',
                              'Balance','Rendimiento','Comentario']).replace(0,"")
 df3_cuenta['Fecha']=df1_precios.iloc[:,0]
 capital=100000
+cambios
