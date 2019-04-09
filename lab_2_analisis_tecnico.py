@@ -5,7 +5,9 @@ Editor de Spyder
 Este es un archivo temporal.
 """
 
-
+# =============================================================================
+# Insertamos librerias a utilizar
+# =============================================================================
 import pandas as pd
 from oandapyV20 import API
 import oandapyV20.endpoints.instruments as instruments
@@ -14,7 +16,11 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import numpy as np
 #%%
+# =============================================================================
+# Definimos funciones a utilizar
+# =============================================================================
 def date_range(start_date, end_date, increment, period):
+    #Funcion que crea vector de fechas con incremento especifico
     result = []
     nxt = start_date
     delta = relativedelta(**{period:increment})
@@ -22,13 +28,13 @@ def date_range(start_date, end_date, increment, period):
         result.append(nxt)
         nxt += delta
     return result
-start_date = datetime(2016, 4, 1)
-end_date = datetime(2019, 4, 1)
-fechas = date_range(start_date, end_date, 5, 'minutes')
+
 def ag_car(cadena):
+    #Funcion que agrega caracteres a cadena, fin especifico para funcion de oanda
     nueva=cadena[0:10]+"T"+cadena[11:-1]+"Z"
     return nueva
 def rsi_fun(prices,ind,n):
+    #Funcion que obtiene el RSI de ciertos precios con cierto periodo
     gains=[]
     losses=[]
     ind=ind-(n)
@@ -46,6 +52,10 @@ def rsi_fun(prices,ind,n):
 
 
 #%%
+start_date = datetime(2016, 4, 1)
+end_date = datetime(2019, 4, 1)
+fechas = date_range(start_date, end_date, 5, 'minutes')#Creamos vector de fechas con intervalo de 5 minutos
+
 A1_OA_Da = 17                     # Day Align
 A1_OA_Ta = "America/Mexico_City"  # Time Align
 
@@ -58,17 +68,21 @@ A1_OA_Gn = "M5"                   # Granularidad de velas
 A1_OA_Ak = "a1a2738e43e01183e07cbb8dec8e2ca4-771e2b55a25bd1f6cb73b42ca4b1f432"
 
 
-F1=ag_car(str(fechas[0]))
-F2=ag_car(str(fechas[5000]))
+F1=ag_car(str(fechas[0])) #Fecha 1 inicial
+F2=ag_car(str(fechas[5000])) #Fecha 2 inicial
 
 # =============================================================================
 # Inicializar API de Oanda
 # =============================================================================
-
-
 api = API(access_token=A1_OA_Ak)
-lista = []
+#
+
+lista = [] #Inicializamos lista 
 n=5000
+#%%
+# =============================================================================
+# Ciclo para descargar precios de oanda
+# =============================================================================
 while pd.to_datetime(F2)<fechas[-1]:
     params = {"granularity": A1_OA_Gn, "price": "M", "dailyAlignment": A1_OA_Da,
               "alignmentTimezone": A1_OA_Ta, "from": F1, "to": F2}
@@ -88,21 +102,27 @@ while pd.to_datetime(F2)<fechas[-1]:
     try:F2=ag_car(str(fechas[n]))
     except IndexError:
         break
-    
+# =============================================================================
+# Data Frame 1: Precios
+# =============================================================================
 df1_precios = pd.DataFrame(lista)
 df1_precios = df1_precios[['TimeStamp', 'Open', 'High', 'Low', 'Close']]
 df1_precios['TimeStamp'] = pd.to_datetime(df1_precios['TimeStamp'])
 #%%
+# =============================================================================
+# Data Frame 2: Operaciones
+# =============================================================================
 n=len(df1_precios)
 data=np.empty((n,8))
 df2_operaciones=pd.DataFrame(data,columns=['Fecha','Folio','Operacion',
                              'Unidades','Margen','Comentario','Precio_Apertura',
                              'Precio_Cierre']).replace(0,"")
 df2_operaciones['Fecha']=df1_precios.iloc[:,0]
-
+# =============================================================================
+# Data Frame 3: Cuenta
+# =============================================================================
 data=np.empty((n,6))
 df3_cuenta=pd.DataFrame(data,columns=['Fecha','Capital','Flotante',
                              'Balance','Rendimiento','Comentario']).replace(0,"")
 df3_cuenta['Fecha']=df1_precios.iloc[:,0]
 capital=100000
-cambios
