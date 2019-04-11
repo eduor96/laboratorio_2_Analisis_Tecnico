@@ -133,120 +133,119 @@ df3_cuenta['Fecha']=df1_precios.iloc[:,0]
 # =============================================================================
 # Inicializacion de parametros
 # =============================================================================
-capital_i=100000 #Capital Inicial USD
-flotante=0 
-p_o=.10 #Porcentaje de capital por operacion
-stop_loss=-10
-take_profit=30
-balance=capital_i+flotante
-rendimiento=balance/capital_i
-up_rsi=90
-down_rsi=25
+
+
 #%%
 # =============================================================================
 # Data Frame 4:RSI
 # =============================================================================
-rsi=[]
-cap=capital_i
-oper_act=False
-venta=False
-compra=False
-folio_v=1
-folio_c=1
-fin=len(df1_precios)
-fin=1000
-tic = time.clock()
-sube=0
-baja=0
-condicion_up=False
-condicion_down=False
-for i in range(14,fin):
-    rsi_=rsi_fun(df1_precios.iloc[:,2],i,14)
-    open_price=float(df1_precios.iloc[i,1])
-    hi_price=float(df1_precios.iloc[i,2])
-    low_price=float(df1_precios.iloc[i,3])
-    close_price=float(df1_precios.iloc[i,4])
+def main_function(up_rsi,down_rsi,stop_loss,take_profit,ventana,fin):
+    capital_i=100000 #Capital Inicial USD
+    flotante=0 
+    p_o=.10 #Porcentaje de capital por operacion
+    cap=capital_i
+    oper_act=False
+    folio_v=1
+    folio_c=1
    
-    if rsi_>=up_rsi and oper_act==False :
-        #Cambios en Data Frame 2: Operaciones
-        df2_operaciones.iloc[i,1]="V_"+str(folio_v)
-        df2_operaciones.iloc[i,2]=-1
-        monto=p_o*cap
-        unidades=math.floor(monto)
-        df2_operaciones.iloc[i,3]=unidades
-        df2_operaciones.iloc[i,5]="RSI a: "+str(rsi_)
-        df2_operaciones.iloc[i,6]=open_price
-        #Cambios en Data Frame 3: Cuenta
-        cap=cap-monto
-        df3_cuenta.iloc[i,5]="Se abrió operación: venta"
-        precio_operacion=open_price
-        #Cambios generales por operacion
-        ult_folio="V_"+str(folio_v)
-        folio_v+=1
-        oper_act=True
-        venta=True
-
-    if rsi_<=down_rsi and oper_act==False :
-        #Cambios en Data Frame 2: Operaciones
-        df2_operaciones.iloc[i,1]="C_"+str(folio_c)
-        df2_operaciones.iloc[i,2]=1
-        monto=p_o*cap
-        unidades=math.floor(monto)
-        df2_operaciones.iloc[i,3]=unidades
-        df2_operaciones.iloc[i,5]="RSI a: "+str(rsi_)
-        df2_operaciones.iloc[i,6]=open_price
-        #Cambios en Data Frame 3: Cuenta
-        cap=cap-monto
-        df3_cuenta.iloc[i,5]="Se abrió operación: compra"
-        precio_operacion=open_price
-        #Cambios generales por operacion
-        ult_folio="C_"+str(folio_c)
-        folio_c+=1
-        oper_act=True
-        compra=True
-    if oper_act==True: #Si existe una operación activa
-        if venta:#Si la operación activa es una venta
-            flotante=((precio_operacion-close_price)*unidades)/close_price+unidades
-        else:
-            flotante=((close_price-precio_operacion)*unidades)/close_price+unidades
-        pr_lo= flotante-unidades
-        if pr_lo>=take_profit or pr_lo<=stop_loss: #Si se cumple alguno de los parametros
-            df3_cuenta.iloc[i,1]=cap+flotante
-            cap=cap+flotante
+    for i in range(ventana,fin):
+        rsi_=rsi_fun(df1_precios.iloc[:,2],i,ventana)
+        open_price=float(df1_precios.iloc[i,1])
+        #hi_price=float(df1_precios.iloc[i,2])
+        #low_price=float(df1_precios.iloc[i,3])
+        close_price=float(df1_precios.iloc[i,4])
+       
+        if rsi_>=up_rsi and oper_act==False :
+            #Cambios en Data Frame 2: Operaciones
+            df2_operaciones.iloc[i,1]="V_"+str(folio_v)
+            df2_operaciones.iloc[i,2]=-1
+            monto=p_o*cap
+            unidades=math.floor(monto)
+            df2_operaciones.iloc[i,3]=unidades
+            df2_operaciones.iloc[i,5]="RSI a: "+str(rsi_)
+            df2_operaciones.iloc[i,6]=open_price
+            #Cambios en Data Frame 3: Cuenta
+            cap=cap-monto
+            df3_cuenta.iloc[i,5]="Se abrió operación: venta"
+            precio_operacion=open_price
+            #Cambios generales por operacion
+            ult_folio="V_"+str(folio_v)
+            folio_v+=1
+            oper_act=True
+            venta=True
+    
+        if rsi_<=down_rsi and oper_act==False :
+            #Cambios en Data Frame 2: Operaciones
+            df2_operaciones.iloc[i,1]="C_"+str(folio_c)
+            df2_operaciones.iloc[i,2]=1
+            monto=p_o*cap
+            unidades=math.floor(monto)
+            df2_operaciones.iloc[i,3]=unidades
+            df2_operaciones.iloc[i,5]="RSI a: "+str(rsi_)
+            df2_operaciones.iloc[i,6]=open_price
+            #Cambios en Data Frame 3: Cuenta
+            cap=cap-monto
+            df3_cuenta.iloc[i,5]="Se abrió operación: compra"
+            precio_operacion=open_price
+            #Cambios generales por operacion
+            ult_folio="C_"+str(folio_c)
+            folio_c+=1
+            oper_act=True
+        if oper_act==True: #Si existe una operación activa
+            if venta:#Si la operación activa es una venta
+                flotante=((precio_operacion-close_price)*unidades)/close_price+unidades
+            else:
+                flotante=((close_price-precio_operacion)*unidades)/close_price+unidades
+            pr_lo= flotante-unidades
+            if pr_lo>=take_profit or pr_lo<=stop_loss: #Si se cumple alguno de los parametros
+                df3_cuenta.iloc[i,1]=cap+flotante
+                cap=cap+flotante
+                df3_cuenta.iloc[i,2]=0
+                df3_cuenta.iloc[i,3]=df3_cuenta.iloc[i,1]
+                df3_cuenta.iloc[i,4]=df3_cuenta.iloc[i,3]/capital_i-1
+                df3_cuenta.iloc[i,5]="Se cerró operación: Con pérdida/ganancia: " + str(pr_lo)
+                
+                df2_operaciones.iloc[i,1]=ult_folio
+                if pr_lo<=stop_loss: #Si se cumple el stop loss
+                    df2_operaciones.iloc[i,5]="Se ejecutó Stop Loss: "+str(pr_lo)
+                else:
+                    if pr_lo>=take_profit: #Si se cumple el take profit
+                        df2_operaciones.iloc[i,5]="Se ejecutó Take Profit: "+str(pr_lo)
+                df2_operaciones.iloc[i,7]=close_price
+                oper_act=False #Ponemos como inactiva las operación abierta
+            else: #Si no se cumple ningun parametro (stop loss,take profit)
+                df3_cuenta.iloc[i,1]=cap
+                df3_cuenta.iloc[i,2]=flotante
+                df3_cuenta.iloc[i,3]=df3_cuenta.iloc[i,1]+df3_cuenta.iloc[i,2]
+                df3_cuenta.iloc[i,4]=df3_cuenta.iloc[i,3]/capital_i-1
+        else: #si no existe alguna operación activa
+            df3_cuenta.iloc[i,1]=cap
             df3_cuenta.iloc[i,2]=0
             df3_cuenta.iloc[i,3]=df3_cuenta.iloc[i,1]+df3_cuenta.iloc[i,2]
             df3_cuenta.iloc[i,4]=df3_cuenta.iloc[i,3]/capital_i-1
-            df3_cuenta.iloc[i,5]="Se cerró operación: Con pérdida/ganancia: " + str(pr_lo)
-            
-            df2_operaciones.iloc[i,1]=ult_folio
-            if pr_lo<=stop_loss: #Si se cumple el stop loss
-                df2_operaciones.iloc[i,5]="Se ejecutó Stop Loss: "+str(pr_lo)
-            else:
-                if pr_lo>=take_profit: #Si se cumple el take profit
-                    df2_operaciones.iloc[i,5]="Se ejecutó Take Profit: "+str(pr_lo)
-            df2_operaciones.iloc[i,7]=close_price
-            oper_act=False #Ponemos como inactiva las operación abierta
-            compra=False
-            venta=False
-            condicion_up=False
-            condicion_down=False
-            baja=0
-            sube=0
-        else: #Si no se cumple ningun parametro (stop loss,take profit)
-            df3_cuenta.iloc[i,1]=cap
-            df3_cuenta.iloc[i,2]=flotante
-            df3_cuenta.iloc[i,3]=df3_cuenta.iloc[i,1]+df3_cuenta.iloc[i,2]
-            df3_cuenta.iloc[i,4]=df3_cuenta.iloc[i,3]/capital_i-1
-    else: #si no existe alguna operación activa
-        df3_cuenta.iloc[i,1]=cap
-        df3_cuenta.iloc[i,2]=0
-        df3_cuenta.iloc[i,3]=df3_cuenta.iloc[i,1]+df3_cuenta.iloc[i,2]
-        df3_cuenta.iloc[i,4]=df3_cuenta.iloc[i,3]/capital_i-1
-    rsi.append(rsi_)
+    
+    rendimiento_final=df3_cuenta.iloc[i-1,4]
+    
+    return rendimiento_final
+#%%
+
+stop_loss=[-5,-10,-15]
+take_profit=[10,30,50]
+up_rsi=[70,80,90]
+down_rsi=[10,20,30]
+ventana=[14,21,28]
+n=200
+x=0
+rendimientos=pd.DataFrame(np.empty((n,2)))
+tic = time.clock()
+for i in up_rsi:
+    for j in down_rsi:
+        for k in stop_loss:
+            for l in take_profit:
+                for m in ventana:
+                    rendimientos.iloc[x,1]=(main_function(90,10,-5,30,14,n))
+                    rendimientos.iloc[x,0]=str(i)+","+str(j)+","+str(k)+","+str(l)+","+str(m)
+                    x=x+1
 toc = time.clock()
 tiempo=toc - tic
 print("El proceso tarda: ",tiempo,"segundos")
-rsi=pd.DataFrame(rsi)
-#%%
-x=1000
-plt.plot(rsi.iloc[x:x+100])
