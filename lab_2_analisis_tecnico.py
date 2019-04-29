@@ -140,6 +140,7 @@ df3_cuenta['Fecha']=df1_precios.iloc[:,0]
 # Data Frame 4:RSI
 # =============================================================================
 def main_function(up_rsi,down_rsi,stop_loss,take_profit,ventana,fin):
+
     capital_i=100000 #Capital Inicial USD
     flotante=0 
     p_o=.10 #Porcentaje de capital por operacion
@@ -147,7 +148,7 @@ def main_function(up_rsi,down_rsi,stop_loss,take_profit,ventana,fin):
     oper_act=False
     folio_v=1
     folio_c=1
-   
+    venta=False
     for i in range(ventana,fin):
         rsi_=rsi_fun(df1_precios.iloc[:,2],i,ventana)
         open_price=float(df1_precios.iloc[i,1])
@@ -223,7 +224,7 @@ def main_function(up_rsi,down_rsi,stop_loss,take_profit,ventana,fin):
             df3_cuenta.iloc[i,2]=0
             df3_cuenta.iloc[i,3]=df3_cuenta.iloc[i,1]+df3_cuenta.iloc[i,2]
             df3_cuenta.iloc[i,4]=df3_cuenta.iloc[i,3]/capital_i-1
-    
+        print(i)
     rendimiento_final=df3_cuenta.iloc[i-1,4]
     
     return rendimiento_final
@@ -234,18 +235,29 @@ take_profit=[10,30,50]
 up_rsi=[70,80,90]
 down_rsi=[10,20,30]
 ventana=[14,21,28]
-n=200
+n=500
 x=0
-rendimientos=pd.DataFrame(np.empty((n,2)))
-tic = time.clock()
+rendimientos=pd.DataFrame(np.empty((243,2)))
+
 for i in up_rsi:
     for j in down_rsi:
         for k in stop_loss:
             for l in take_profit:
                 for m in ventana:
-                    rendimientos.iloc[x,1]=(main_function(90,10,-5,30,14,n))
+                    rendimientos.iloc[x,1]=main_function(i,j,k,l,m,n)
                     rendimientos.iloc[x,0]=str(i)+","+str(j)+","+str(k)+","+str(l)+","+str(m)
                     x=x+1
+
+#%%
+up_rsi_optimo=90
+down_rsi_optimo=30
+stop_optimo=-10
+take_optimo=50
+ventana_opt=14
+n=len(df1_precios)
+tic = time.clock()
+rendimiento_optimo=main_function(up_rsi_optimo,down_rsi_optimo,stop_optimo,take_optimo,ventana_opt,n)
+print(rendimiento_optimo)
 toc = time.clock()
 tiempo=toc - tic
 print("El proceso tarda: ",tiempo,"segundos")
